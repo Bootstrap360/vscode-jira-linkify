@@ -1,0 +1,73 @@
+{
+  "name": "jira-linkify",
+  "displayName": "Jira Linkify",
+  "description": "Turns Jira ticket references (ABC-123, abc-123, abc_123) into clickable links in the editor and the integrated terminal.",
+  "version": "1.0.0",
+  "publisher": "bootstrap360",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "jira",
+    "links",
+    "terminal",
+    "issue",
+    "atlassian"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bootstrap360/vscode-jira-linkify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Bootstrap360/vscode-jira-linkify/issues"
+  },
+  "homepage": "https://github.com/Bootstrap360/vscode-jira-linkify#readme",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/src/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Jira Linkify",
+      "properties": {
+        "jiraLinks.baseUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Base URL that a ticket key is appended to, e.g. `https://yourorg.atlassian.net/browse/`. Leave empty to disable linking.",
+          "scope": "resource"
+        },
+        "jiraLinks.projectKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "uniqueItems": true,
+          "markdownDescription": "Project keys to linkify, e.g. `[\"ABC\", \"XY\"]`. Matching is case-insensitive and accepts `-` or `_` as the separator. Leave empty to disable linking.",
+          "scope": "resource"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src test --ext ts",
+    "test": "npm run compile && node --test out/test/",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vscode/vsce": "^2.32.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}
