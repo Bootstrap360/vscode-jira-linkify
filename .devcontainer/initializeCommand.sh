@@ -7,12 +7,9 @@ set -e
 
 log() { echo "[initializeCommand] $*"; }
 
-# Stage the host user's .gitconfig (if present) inside ~/repos so it's visible
-# in the container via the ~/repos bind mount. postCreateCommand then copies it
-# into the container's $HOME so git honours it.
-if [ -f ~/.gitconfig ]; then
-    cp ~/.gitconfig ~/repos
-fi
+# NOTE: nothing here stages .gitconfig. Dev Containers copies the host's
+# ~/.gitconfig into the container by itself, so the copy smg3 does is redundant
+# here -- and it wrote into ~/repos, which is shared by every repo on the box.
 
 # --- Claude Code -------------------------------------------------------------
 # Pre-create the ~/.claude bind-mount source. This runs as the host user BEFORE

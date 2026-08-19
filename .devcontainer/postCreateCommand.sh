@@ -7,11 +7,9 @@ log() { echo "[postCreateCommand] $*"; }
 
 export PATH="$HOME/.local/bin:$PATH"
 
-# Bring the host user's .gitconfig (staged into ~/repos by
-# initializeCommand.sh) into the container's $HOME so git honours it.
-if [ -f "$HOME/repos/.gitconfig" ]; then
-    cp "$HOME/repos/.gitconfig" "$HOME/.gitconfig"
-fi
+# NOTE: no .gitconfig handling here. Dev Containers copies the host's
+# ~/.gitconfig into the container itself, so staging our own copy was redundant
+# (and looked at $HOME/repos, which does not exist -- see the .my_bashrc note).
 
 # Wire up <host home>/repos/.my_bashrc (bind-mounted from the host) into this
 # container's ~/.bashrc so shell aliases (gcm, gpo, etc.) work here too.
