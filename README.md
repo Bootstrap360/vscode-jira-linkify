@@ -69,6 +69,11 @@ URL string and asks VS Code to open it.
 
 ## Development
 
+The repo ships a dev container (**Dev Containers: Reopen in Container**) with
+node, npm, `gh` and the Claude Code CLI preinstalled; it bind-mounts `~/.ssh`,
+`~/.claude` and `~/repos`, and runs `npm ci` on create. Working outside it is
+fine too — everything below only needs node 20.
+
 ```bash
 npm install
 npm run compile   # tsc -> out/

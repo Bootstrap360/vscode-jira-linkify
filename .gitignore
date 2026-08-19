@@ -1,3 +1,6 @@
 node_modules/
 out/
 *.vsix
+
+# devcontainer: generated host-side flag, not source
+.devcontainer/.claude-enabled

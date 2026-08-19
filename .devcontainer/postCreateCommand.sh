@@ -1,0 +1,49 @@
+#!/bin/bash
+# Runs INSIDE the container once, at container create. cwd is the workspace
+# folder (may be a git worktree).
+set -e
+
+log() { echo "[postCreateCommand] $*"; }
+
+export PATH="$HOME/.local/bin:$PATH"
+
+# Bring the host user's .gitconfig (staged into ~/repos by
+# initializeCommand.sh) into the container's $HOME so git honours it.
+if [ -f "$HOME/repos/.gitconfig" ]; then
+    cp "$HOME/repos/.gitconfig" "$HOME/.gitconfig"
+fi
+
+# Wire up ~/repos/.my_bashrc (bind-mounted from the host) into this container's
+# ~/.bashrc so shell aliases (gcm, gpo, etc.) work here too.
+if [ -f "$HOME/repos/.my_bashrc" ] && ! grep -q '\.my_bashrc' "$HOME/.bashrc"; then
+    echo 'source $HOME/repos/.my_bashrc' >> "$HOME/.bashrc"
+fi
+
+log "Installing npm dependencies"
+npm ci
+
+log "Compiling once so out/ exists for F5 debugging"
+npm run compile
+
+# --- Claude Code CLI ---------------------------------------------------------
+# Installed only when the host has Claude (flag written by initializeCommand.sh
+# on the host side). Auth, history and config come in via the ~/.claude mount,
+# so no separate login is needed. Install failure is deliberately non-fatal:
+# this script runs with `set -e`, and a claude.ai outage must not break
+# container creation.
+if [ -f "$PWD/.devcontainer/.claude-enabled" ]; then
+    if command -v claude > /dev/null 2>&1; then
+        log "Claude CLI already installed at $(command -v claude), skipping install"
+    else
+        log "Installing Claude Code CLI (native installer)"
+        if curl -fsSL https://claude.ai/install.sh | bash; then
+            log "Claude CLI installed to ~/.local/bin/claude"
+        else
+            log "WARNING: Claude CLI install failed (network?). Rerun manually: curl -fsSL https://claude.ai/install.sh | bash"
+        fi
+    fi
+else
+    log "Claude not detected on host, skipping Claude CLI install"
+fi
+
+log "Done. node $(node --version), npm $(npm --version), gh $(gh --version | head -1 | awk '{print $3}')"
