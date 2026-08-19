@@ -45,7 +45,7 @@ function sanitiseKeys(projectKeys: string[]): string[] {
     seen.add(key);
     keys.push(key);
   }
-  // Longest first so the alternation prefers AIRWM3B over AIR.
+  // Longest first so the alternation prefers ABCDEF over ABC.
   return keys.sort((a, b) => b.length - a.length || a.localeCompare(b));
 }
 
@@ -67,7 +67,7 @@ export class JiraMatcher {
     private readonly maxMatches: number,
   ) {
     const alternation = keys.map(escapeRegExp).join('|');
-    // \b on both sides keeps `MYASE-1` and `ASE-12x` out; `_` is a word
+    // \b on both sides keeps `MYABC-1` and `ABC-12x` out; `_` is a word
     // character, so `FOO_ASE-1` is rejected too.
     this.pattern = new RegExp(`\\b(${alternation})[-_](\\d{1,10})\\b`, 'gi');
   }
