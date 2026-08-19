@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { MatcherProvider } from './config';
 import { JiraDocumentLinkProvider } from './documentLinkProvider';
+import { JiraTerminalLinkProvider } from './terminalLinkProvider';
 
 export function activate(context: vscode.ExtensionContext): void {
   const matchers = new MatcherProvider();
@@ -13,6 +14,10 @@ export function activate(context: vscode.ExtensionContext): void {
       { scheme: '*' },
       new JiraDocumentLinkProvider(matchers),
     ),
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerTerminalLinkProvider(new JiraTerminalLinkProvider(matchers)),
   );
 }
 
