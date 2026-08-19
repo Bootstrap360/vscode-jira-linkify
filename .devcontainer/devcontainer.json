@@ -23,7 +23,13 @@
 		// needs this because $HOME here is /home/node (remoteUser is `node`), so
 		// $HOME/repos does not exist. Deriving it from $PWD instead would break
 		// when the container is opened from a git worktree.
-		"HOST_HOME": "/home/${localEnv:USER}"
+		"HOST_HOME": "/home/${localEnv:USER}",
+		// The Claude CLI's native installer puts the binary in ~/.local/bin, which
+		// is NOT on the image's PATH. Exporting PATH inside postCreateCommand only
+		// affects that script's own process, so extensions -- which spawn
+		// non-interactive processes and never read .bashrc -- could not find
+		// `claude` at all. It has to be declared here to reach the extension host.
+		"PATH": "/home/node/.local/bin:${containerEnv:PATH}"
 	},
 	// Use the exact folder VS Code opened, so "Reopen in Container" works from
 	// any git worktree rather than always landing in the main checkout.
