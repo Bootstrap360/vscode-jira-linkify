@@ -4,3 +4,4 @@ out/
 
 # devcontainer: generated host-side flag, not source
 .devcontainer/.claude-enabled
+.vscode/settings.json
