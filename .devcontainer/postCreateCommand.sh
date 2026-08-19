@@ -13,10 +13,17 @@ if [ -f "$HOME/repos/.gitconfig" ]; then
     cp "$HOME/repos/.gitconfig" "$HOME/.gitconfig"
 fi
 
-# Wire up ~/repos/.my_bashrc (bind-mounted from the host) into this container's
-# ~/.bashrc so shell aliases (gcm, gpo, etc.) work here too.
-if [ -f "$HOME/repos/.my_bashrc" ] && ! grep -q '\.my_bashrc' "$HOME/.bashrc"; then
-    echo 'source $HOME/repos/.my_bashrc' >> "$HOME/.bashrc"
+# Wire up <host home>/repos/.my_bashrc (bind-mounted from the host) into this
+# container's ~/.bashrc so shell aliases (gcm, gpo, etc.) work here too.
+#
+# HOST_HOME comes from devcontainer.json's remoteEnv and is NOT interchangeable
+# with $HOME: remoteUser is `node`, so $HOME is /home/node while the mount lands
+# at the host user's home. The path is expanded before being written to .bashrc,
+# because HOST_HOME is only set in shells VS Code spawns, not under docker exec.
+host_bashrc="${HOST_HOME:-$HOME}/repos/.my_bashrc"
+if [ -f "$host_bashrc" ] && ! grep -q '\.my_bashrc' "$HOME/.bashrc"; then
+    log "Sourcing $host_bashrc from ~/.bashrc"
+    echo "source $host_bashrc" >> "$HOME/.bashrc"
 fi
 
 log "Installing npm dependencies"
