@@ -4,10 +4,17 @@
 	// devcontainer "features" already covers npm and gh, so there is nothing
 	// repo-specific left to build.
 	"name": "jira-linkify:dev",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:20-bookworm",
+	// Pinned by digest, not just tag: `20-bookworm` is a moving target, so two
+	// people running "Rebuild Container" a month apart would otherwise get
+	// different toolchains. The tag is kept alongside for readability -- docker
+	// resolves the digest and ignores it. Bump both together, deliberately;
+	// nothing here picks up upstream patches on its own.
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:20-bookworm@sha256:0096adfe1720ee581fb68921b15b9de1df0ba46bec62e8dd8cd7da768655a50d",
 	"features": {
-		// gh, for `gh secret set VSCE_PAT` and PR work.
-		"ghcr.io/devcontainers/features/github-cli:1": {}
+		// gh, for `gh secret set VSCE_PAT` and PR work. Pinned to an exact
+		// version; `:1` would float across the whole 1.x line. The resolved
+		// digest is recorded in devcontainer-lock.json, which is committed.
+		"ghcr.io/devcontainers/features/github-cli:1.1.1": {}
 	},
 	// The stock image ships a `node` user (UID 1000) rather than one named
 	// after the host user, so unlike smg3 we keep `node` and let VS Code remap

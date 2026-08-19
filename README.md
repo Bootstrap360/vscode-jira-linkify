@@ -74,6 +74,13 @@ node, npm, `gh` and the Claude Code CLI preinstalled; it bind-mounts `~/.ssh`,
 `~/.claude` and `~/repos`, and runs `npm ci` on create. Working outside it is
 fine too — everything below only needs node 20.
 
+Container builds are reproducible: the base image is pinned by digest, the
+`github-cli` feature to an exact version, its resolved digest is committed in
+`.devcontainer/devcontainer-lock.json`, and npm deps come from `package-lock.json`
+via `npm ci`. Nothing picks up upstream changes on its own, so rebuilding a year
+from now gives the same toolchain — and upgrading is a deliberate edit to the
+digest and version, not a surprise.
+
 ```bash
 npm install
 npm run compile   # tsc -> out/
