@@ -1,0 +1,60 @@
+name: Publish Extension
+
+# Tag push (v1.0.0) publishes to the Marketplace.
+# Manual runs only build and upload the .vsix, so a release can be rehearsed safely.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm test
+
+      # A tag disagreeing with package.json would publish the wrong version under
+      # the right name, and Marketplace versions can never be reused.
+      - name: Check tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag v$tag does not match package.json version $pkg"
+            exit 1
+          fi
+
+      - name: Package
+        run: npx @vscode/vsce package --out jira-linkify.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: jira-linkify.vsix
+          if-no-files-found: error
+
+      - name: Publish to Marketplace
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx @vscode/vsce publish --packagePath jira-linkify.vsix

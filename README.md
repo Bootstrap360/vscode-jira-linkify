@@ -80,6 +80,31 @@ npm run package   # vsce package -> jira-linkify-<version>.vsix
 Press <kbd>F5</kbd> in VS Code to launch an Extension Development Host with the
 extension loaded.
 
+## Releasing
+
+Publishing is automated by `.github/workflows/publish.yml` and runs on a version
+tag:
+
+```bash
+# bump "version" in package.json and update CHANGELOG.md first
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+The workflow lints, tests, checks the tag against `package.json` (a mismatch
+fails the run), packages the `.vsix` and publishes it. A manual run from the
+Actions tab does everything *except* publish, uploading the `.vsix` as an
+artefact — useful for rehearsing a release.
+
+It needs one repository secret, `VSCE_PAT`: an Azure DevOps token scoped to
+*Marketplace → Manage* across *all accessible organisations*. Set it with
+`gh secret set VSCE_PAT` (paste at the prompt, never as a command argument).
+
+> ⚠️ Marketplace versions can never be reused — a bad publish means bumping the
+> patch version, not replacing the tag. Note also that global Azure DevOps PATs
+> stop working on 2026-12-01; publishing then moves to Microsoft Entra ID via
+> `vsce publish --azure-credential`, which needs `@vscode/vsce` 3.9.2 or newer.
+
 ## Licence
 
 [MIT](LICENSE)
