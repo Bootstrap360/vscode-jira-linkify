@@ -129,16 +129,26 @@ export class BranchStatusBar implements vscode.Disposable {
       return;
     }
 
+    if (!this.currentRepository()) {
+      return;
+    }
+
     const tickets = this.tickets();
     if (tickets.length === 0) {
-      // Detached HEAD, no match, or unconfigured: show nothing rather than a
-      // dead link.
+      // Detached HEAD, no match, or unconfigured: keep the button findable but
+      // visibly inactive.
+      const item = this.createItem(1);
+      item.text = '$(link) No Jira Linkify';
+      item.color = new vscode.ThemeColor('descriptionForeground');
+      item.tooltip = 'No ticket reference in the current branch name';
+      item.command = OPEN_BRANCH_TICKET_COMMAND;
+      item.show();
       return;
     }
 
     if (shouldCollapse(tickets.length)) {
       const item = this.createItem(1);
-      item.text = `$(git-branch) ${tickets.length} tickets`;
+      item.text = `$(link) ${tickets.length} tickets`;
       item.tooltip = tickets.map((ticket) => ticket.key).join(', ');
       item.command = OPEN_BRANCH_TICKET_COMMAND;
       item.show();
@@ -149,7 +159,7 @@ export class BranchStatusBar implements vscode.Disposable {
     // branch-name order.
     tickets.forEach((ticket, index) => {
       const item = this.createItem(tickets.length - index);
-      item.text = `$(git-branch) ${ticket.key}`;
+      item.text = `$(link) ${ticket.key}`;
       item.tooltip = `Open ${ticket.key}`;
       item.command = {
         command: OPEN_BRANCH_TICKET_COMMAND,

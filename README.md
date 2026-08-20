@@ -120,8 +120,8 @@ opens the ticket. The key may sit anywhere in the branch name, so
 
 A branch naming more than one ticket gets one item per key, in the order they
 appear. Past four they collapse into a single entry that opens a pick list.
-Nothing is shown on a detached HEAD, on a branch with no reference, or while the
-extension is unconfigured.
+On a detached HEAD, on a branch with no reference, or while the extension is
+unconfigured, the item dims to "No Jira Linkify" so the button stays findable.
 
 **Jira Linkify: Open ticket for current branch** does the same from the command
 palette, and offers a pick list when the branch names several. Set
