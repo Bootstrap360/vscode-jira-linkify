@@ -9,7 +9,7 @@ import Module from 'node:module';
 import { beforeEach, describe, it } from 'node:test';
 
 const BASE_URL = 'https://example.atlassian.net/browse/';
-const KEYS = ['ASE', 'AIR', 'CS'];
+const KEYS = ['ABC', 'XY', 'KQ'];
 
 // ---------------------------------------------------------------- stub vscode
 
@@ -130,61 +130,61 @@ beforeEach(() => {
 describe('JiraDocumentLinkProvider', () => {
   it('produces a link with the right range, target and tooltip', () => {
     const provider = new JiraDocumentLinkProvider(new MatcherProvider());
-    const links = provider.provideDocumentLinks(fakeDocument('fix ase_384 today'), TOKEN);
+    const links = provider.provideDocumentLinks(fakeDocument('fix abc_384 today'), TOKEN);
 
     assert.equal(links.length, 1);
     assert.equal(links[0].range.start.offset, 4);
     assert.equal(links[0].range.end.offset, 11);
-    assert.equal(links[0].target.toString(), `${BASE_URL}ASE-384`);
-    assert.equal(links[0].tooltip, 'Open ASE-384');
+    assert.equal(links[0].target.toString(), `${BASE_URL}ABC-384`);
+    assert.equal(links[0].tooltip, 'Open ABC-384');
   });
 
   it('links every variant in one document', () => {
     const provider = new JiraDocumentLinkProvider(new MatcherProvider());
     const links = provider.provideDocumentLinks(
-      fakeDocument('ASE-384 ase-384 ase_384 AsE_384'),
+      fakeDocument('ABC-384 abc-384 abc_384 AbC_384'),
       TOKEN,
     );
     assert.deepEqual(
       links.map((link: any) => link.target.toString()),
-      Array(4).fill(`${BASE_URL}ASE-384`),
+      Array(4).fill(`${BASE_URL}ABC-384`),
     );
   });
 
   it('scopes configuration lookup to the document uri', () => {
     const provider = new JiraDocumentLinkProvider(new MatcherProvider());
     const uri = { path: '/repo/other.txt' };
-    provider.provideDocumentLinks(fakeDocument('ASE-1', uri), TOKEN);
+    provider.provideDocumentLinks(fakeDocument('ABC-1', uri), TOKEN);
     assert.equal(state.lastScope, uri);
   });
 
   it('returns nothing when unconfigured', () => {
     state.baseUrl = '';
     const provider = new JiraDocumentLinkProvider(new MatcherProvider());
-    assert.deepEqual(provider.provideDocumentLinks(fakeDocument('ASE-1'), TOKEN), []);
+    assert.deepEqual(provider.provideDocumentLinks(fakeDocument('ABC-1'), TOKEN), []);
   });
 
   it('returns nothing once cancelled', () => {
     const provider = new JiraDocumentLinkProvider(new MatcherProvider());
     const cancelled = { isCancellationRequested: true };
-    assert.deepEqual(provider.provideDocumentLinks(fakeDocument('ASE-1'), cancelled), []);
+    assert.deepEqual(provider.provideDocumentLinks(fakeDocument('ABC-1'), cancelled), []);
   });
 
   it('skips documents over the size limit', () => {
     const provider = new JiraDocumentLinkProvider(new MatcherProvider());
-    const huge = `ASE-1 ${'x'.repeat(2 * 1024 * 1024)}`;
+    const huge = `ABC-1 ${'x'.repeat(2 * 1024 * 1024)}`;
     assert.deepEqual(provider.provideDocumentLinks(fakeDocument(huge), TOKEN), []);
   });
 });
 
 describe('JiraTerminalLinkProvider', () => {
-  it('links ASE-384, ase-384 and ase_384 from one terminal line', () => {
+  it('links ABC-384, abc-384 and abc_384 from one terminal line', () => {
     const provider = new JiraTerminalLinkProvider(new MatcherProvider());
-    const links = provider.provideTerminalLinks({ line: 'ASE-384 ase-384 ase_384' });
+    const links = provider.provideTerminalLinks({ line: 'ABC-384 abc-384 abc_384' });
 
     assert.deepEqual(
       links.map((link: any) => link.url),
-      Array(3).fill(`${BASE_URL}ASE-384`),
+      Array(3).fill(`${BASE_URL}ABC-384`),
     );
     assert.deepEqual(
       links.map((link: any) => [link.startIndex, link.length]),
@@ -196,21 +196,21 @@ describe('JiraTerminalLinkProvider', () => {
     );
     assert.deepEqual(
       links.map((link: any) => link.tooltip),
-      Array(3).fill('Open ASE-384'),
+      Array(3).fill('Open ABC-384'),
     );
   });
 
   it('opens the ticket externally when a link is handled', () => {
     const provider = new JiraTerminalLinkProvider(new MatcherProvider());
-    const [link] = provider.provideTerminalLinks({ line: 'see cs_139' });
+    const [link] = provider.provideTerminalLinks({ line: 'see kq_139' });
     provider.handleTerminalLink(link);
-    assert.deepEqual(state.opened, [`${BASE_URL}CS-139`]);
+    assert.deepEqual(state.opened, [`${BASE_URL}KQ-139`]);
   });
 
   it('returns nothing when unconfigured', () => {
     state.projectKeys = [];
     const provider = new JiraTerminalLinkProvider(new MatcherProvider());
-    assert.deepEqual(provider.provideTerminalLinks({ line: 'ASE-1' }), []);
+    assert.deepEqual(provider.provideTerminalLinks({ line: 'ABC-1' }), []);
   });
 });
 

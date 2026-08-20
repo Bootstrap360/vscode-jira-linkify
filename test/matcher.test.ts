@@ -9,7 +9,7 @@ import {
 } from '../src/matcher';
 
 const BASE_URL = 'https://example.atlassian.net/browse/';
-const KEYS = ['AIR', 'ASE', 'AL', 'AS', 'AIRWM3B', 'AIRSMG3R', 'CS'];
+const KEYS = ['XY', 'ABC', 'QA', 'ZZ', 'XYLONGA', 'XYLONGB', 'KQ'];
 
 function matcher(overrides: Partial<{ baseUrl: string; projectKeys: string[] }> = {}) {
   const built = createMatcher({
@@ -38,36 +38,36 @@ describe('createMatcher', () => {
   });
 
   it('uppercases, trims and de-duplicates configured keys', () => {
-    const built = matcher({ projectKeys: [' ase ', 'ASE', 'air'] });
-    assert.deepEqual([...built.keys].sort(), ['AIR', 'ASE']);
+    const built = matcher({ projectKeys: [' abc ', 'ABC', 'xy'] });
+    assert.deepEqual([...built.keys].sort(), ['ABC', 'XY']);
   });
 });
 
 describe('separator and case variants', () => {
   it('matches the canonical uppercase form', () => {
-    assert.deepEqual(keysIn('see ASE-384 for detail'), ['ASE-384']);
+    assert.deepEqual(keysIn('see ABC-384 for detail'), ['ABC-384']);
   });
 
   it('normalises lowercase to UPPER-N', () => {
-    assert.deepEqual(keysIn('see ase-384 for detail'), ['ASE-384']);
+    assert.deepEqual(keysIn('see abc-384 for detail'), ['ABC-384']);
   });
 
   it('normalises the underscore variant to a hyphen', () => {
-    assert.deepEqual(keysIn('see ase_384 for detail'), ['ASE-384']);
+    assert.deepEqual(keysIn('see abc_384 for detail'), ['ABC-384']);
   });
 
   it('normalises mixed case', () => {
-    assert.deepEqual(keysIn('see AsE_384 for detail'), ['ASE-384']);
+    assert.deepEqual(keysIn('see AbC_384 for detail'), ['ABC-384']);
   });
 
   it('preserves leading zeros in the number', () => {
-    assert.deepEqual(keysIn('ASE-0384'), ['ASE-0384']);
+    assert.deepEqual(keysIn('ABC-0384'), ['ABC-0384']);
   });
 });
 
 describe('whitelist enforcement', () => {
   it('ignores keys outside the whitelist', () => {
-    assert.deepEqual(keysIn('ticket XYZ-123 and ASE-1'), ['ASE-1']);
+    assert.deepEqual(keysIn('ticket XYZ-123 and ABC-1'), ['ABC-1']);
   });
 
   it('does not linkify UTF_8', () => {
@@ -79,125 +79,125 @@ describe('whitelist enforcement', () => {
   });
 
   it('prefers the longest matching key', () => {
-    assert.deepEqual(keysIn('AIRWM3B-42 and AIRSMG3R-7 and AIR-1'), [
-      'AIRWM3B-42',
-      'AIRSMG3R-7',
-      'AIR-1',
+    assert.deepEqual(keysIn('XYLONGA-42 and XYLONGB-7 and XY-1'), [
+      'XYLONGA-42',
+      'XYLONGB-7',
+      'XY-1',
     ]);
   });
 });
 
 describe('boundaries', () => {
   it('rejects a key glued to preceding letters', () => {
-    assert.deepEqual(keysIn('MYASE-123'), []);
+    assert.deepEqual(keysIn('MYABC-123'), []);
   });
 
   it('matches a key preceded by an underscore, which is a separator', () => {
-    assert.deepEqual(keysIn('FOO_ASE-123'), ['ASE-123']);
+    assert.deepEqual(keysIn('FOO_ABC-123'), ['ABC-123']);
   });
 
   it('matches trailing letters or digits glued to the number', () => {
-    assert.deepEqual(keysIn('ASE-123abc'), ['ASE-123']);
-    assert.deepEqual(keysIn('ASE-123_4'), ['ASE-123']);
-    assert.deepEqual(keysIn('ASE-123_4abc'), ['ASE-123']);
+    assert.deepEqual(keysIn('ABC-123abc'), ['ABC-123']);
+    assert.deepEqual(keysIn('ABC-123_4'), ['ABC-123']);
+    assert.deepEqual(keysIn('ABC-123_4abc'), ['ABC-123']);
   });
 
   it('keeps the digit run greedy, so a longer number is not truncated', () => {
-    assert.deepEqual(keysIn('ASE-1234'), ['ASE-1234']);
+    assert.deepEqual(keysIn('ABC-1234'), ['ABC-1234']);
   });
 
   it('still rejects a key glued to preceding letters or digits', () => {
-    assert.deepEqual(keysIn('MYASE-123'), []);
-    assert.deepEqual(keysIn('9ASE-123'), []);
+    assert.deepEqual(keysIn('MYABC-123'), []);
+    assert.deepEqual(keysIn('9ABC-123'), []);
   });
 
   it('matches a trailing slug after either separator', () => {
-    assert.deepEqual(keysIn('AIR-1100-sdfsakljd'), ['AIR-1100']);
-    assert.deepEqual(keysIn('AIR-1100_sdfsakljd'), ['AIR-1100']);
+    assert.deepEqual(keysIn('XY-1100-sdfsakljd'), ['XY-1100']);
+    assert.deepEqual(keysIn('XY-1100_sdfsakljd'), ['XY-1100']);
   });
 
   it('matches inside a branch name with a trailing slug', () => {
-    assert.deepEqual(keysIn('bugfix/ASE-374-cpd-spread'), ['ASE-374']);
-    assert.deepEqual(keysIn('feature/AIR-1100_sdfsakljd'), ['AIR-1100']);
-    assert.deepEqual(keysIn('release/v2.0.0-ASE-374_wip'), ['ASE-374']);
+    assert.deepEqual(keysIn('bugfix/ABC-374-cpd-spread'), ['ABC-374']);
+    assert.deepEqual(keysIn('feature/XY-1100_sdfsakljd'), ['XY-1100']);
+    assert.deepEqual(keysIn('release/v2.0.0-ABC-374_wip'), ['ABC-374']);
   });
 
   it('finds every key in a branch name, in order', () => {
-    assert.deepEqual(keysIn('feature/AIR-1100_and-ASE-374_more'), ['AIR-1100', 'ASE-374']);
+    assert.deepEqual(keysIn('feature/XY-1100_and-ABC-374_more'), ['XY-1100', 'ABC-374']);
   });
 
   it('matches a one-character slug after either separator', () => {
-    assert.deepEqual(keysIn('AIR-1100_x'), ['AIR-1100']);
-    assert.deepEqual(keysIn('AIR-1100-x'), ['AIR-1100']);
+    assert.deepEqual(keysIn('XY-1100_x'), ['XY-1100']);
+    assert.deepEqual(keysIn('XY-1100-x'), ['XY-1100']);
   });
 
   it('matches at the very start and end of the text', () => {
-    assert.deepEqual(keysIn('ASE-1'), ['ASE-1']);
+    assert.deepEqual(keysIn('ABC-1'), ['ABC-1']);
   });
 
   it('matches inside surrounding punctuation', () => {
-    assert.deepEqual(keysIn('(ASE-1), [cs_2] and "AL-3".'), ['ASE-1', 'CS-2', 'AL-3']);
+    assert.deepEqual(keysIn('(ABC-1), [kq_2] and "QA-3".'), ['ABC-1', 'KQ-2', 'QA-3']);
   });
 
   it('skips a reference inside a URL, which VS Code already links itself', () => {
-    assert.deepEqual(keysIn('https://example.atlassian.net/browse/ASE-9'), []);
-    assert.deepEqual(keysIn('http://jira.internal:8080/browse/AIR-1'), []);
+    assert.deepEqual(keysIn('https://example.atlassian.net/browse/ABC-9'), []);
+    assert.deepEqual(keysIn('http://jira.internal:8080/browse/XY-1'), []);
   });
 
   it('still matches references outside a URL on the same line', () => {
-    assert.deepEqual(keysIn('see https://example.atlassian.net/browse/ASE-9 and ASE-10'), [
-      'ASE-10',
+    assert.deepEqual(keysIn('see https://example.atlassian.net/browse/ABC-9 and ABC-10'), [
+      'ABC-10',
     ]);
-    assert.deepEqual(keysIn('Fixed ASE-9. Ref https://x/browse/AIR-1 too.'), ['ASE-9']);
+    assert.deepEqual(keysIn('Fixed ABC-9. Ref https://x/browse/XY-1 too.'), ['ABC-9']);
   });
 
   it('matches a markdown link label without touching its target', () => {
-    assert.deepEqual(keysIn('[ASE-1](https://example.atlassian.net/browse/ASE-1)'), ['ASE-1']);
+    assert.deepEqual(keysIn('[ABC-1](https://example.atlassian.net/browse/ABC-1)'), ['ABC-1']);
   });
 });
 
 describe('match positions', () => {
   it('reports index, length and raw text', () => {
-    const [match] = matcher().findMatches('fix ase_384 now');
+    const [match] = matcher().findMatches('fix abc_384 now');
     assert.equal(match.index, 4);
     assert.equal(match.length, 7);
-    assert.equal(match.text, 'ase_384');
-    assert.equal(match.key, 'ASE-384');
+    assert.equal(match.text, 'abc_384');
+    assert.equal(match.key, 'ABC-384');
   });
 
   it('finds every occurrence in order, including repeats', () => {
-    const text = 'ASE-1 then ase_2\nAIR-3 and ASE-1';
-    assert.deepEqual(keysIn(text), ['ASE-1', 'ASE-2', 'AIR-3', 'ASE-1']);
+    const text = 'ABC-1 then abc_2\nXY-3 and ABC-1';
+    assert.deepEqual(keysIn(text), ['ABC-1', 'ABC-2', 'XY-3', 'ABC-1']);
   });
 
   it('stops at maxMatches', () => {
     const built = createMatcher({ baseUrl: BASE_URL, projectKeys: KEYS, maxMatches: 2 });
-    assert.equal(built?.findMatches('ASE-1 ASE-2 ASE-3').length, 2);
+    assert.equal(built?.findMatches('ABC-1 ABC-2 ABC-3').length, 2);
   });
 });
 
 describe('URL building', () => {
   it('joins base URL and key with exactly one slash', () => {
-    const [match] = matcher().findMatches('ase_384');
-    assert.equal(match.url, 'https://example.atlassian.net/browse/ASE-384');
+    const [match] = matcher().findMatches('abc_384');
+    assert.equal(match.url, 'https://example.atlassian.net/browse/ABC-384');
   });
 
   it('tolerates a base URL without a trailing slash', () => {
     const built = matcher({ baseUrl: 'https://example.atlassian.net/browse' });
-    assert.equal(built.findMatches('ASE-1')[0].url, 'https://example.atlassian.net/browse/ASE-1');
+    assert.equal(built.findMatches('ABC-1')[0].url, 'https://example.atlassian.net/browse/ABC-1');
   });
 
   it('collapses repeated trailing slashes', () => {
     const built = matcher({ baseUrl: 'https://example.atlassian.net/browse///' });
-    assert.equal(built.findMatches('ASE-1')[0].url, 'https://example.atlassian.net/browse/ASE-1');
+    assert.equal(built.findMatches('ABC-1')[0].url, 'https://example.atlassian.net/browse/ABC-1');
   });
 });
 
 describe('reuse', () => {
   it('does not leak regex state between calls', () => {
     const built = matcher();
-    assert.deepEqual(built.findMatches('ASE-1').map((m) => m.key), ['ASE-1']);
-    assert.deepEqual(built.findMatches('ASE-2').map((m) => m.key), ['ASE-2']);
+    assert.deepEqual(built.findMatches('ABC-1').map((m) => m.key), ['ABC-1']);
+    assert.deepEqual(built.findMatches('ABC-2').map((m) => m.key), ['ABC-2']);
   });
 });
 

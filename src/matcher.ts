@@ -7,11 +7,11 @@
 export interface JiraMatch {
   /** Index of the first character of the reference within the scanned text. */
   index: number;
-  /** Length of the matched text, e.g. `ase_384` is 7. */
+  /** Length of the matched text, e.g. `abc_384` is 7. */
   length: number;
-  /** The matched text exactly as it appears, e.g. `ase_384`. */
+  /** The matched text exactly as it appears, e.g. `abc_384`. */
   text: string;
-  /** Normalised key, e.g. `ASE-384`. */
+  /** Normalised key, e.g. `ABC-384`. */
   key: string;
   /** Absolute URL the reference points at. */
   url: string;
@@ -30,7 +30,7 @@ const DEFAULT_MAX_MATCHES = 5000;
  * Spans of `scheme://host...` in the scanned text.
  *
  * VS Code linkifies whole URLs itself, in both the editor and the terminal. A
- * reference inside one -- `https://org.atlassian.net/browse/ASE-382` -- would
+ * reference inside one -- `https://org.atlassian.net/browse/ABC-382` -- would
  * otherwise get a second, overlapping link over the same characters, which
  * leaves the URL unclickable and visibly flickering as the editor picks between
  * the two. The URL already goes to the ticket, so ours adds nothing.
@@ -135,15 +135,15 @@ export class JiraMatcher {
   ) {
     const alternation = keys.map(escapeRegExp).join('|');
     // A letter or digit immediately before the key means the key is just part
-    // of a longer word, so `MYASE-1` is not a reference. Anything else --
+    // of a longer word, so `MYABC-1` is not a reference. Anything else --
     // underscore, slash, punctuation, start of text -- is a separator, so
-    // `FOO_ASE-1` is one. That is a negative lookbehind rather than \b, because
-    // `_` is a word character and \b would reject `FOO_ASE-1` along with it.
+    // `FOO_ABC-1` is one. That is a negative lookbehind rather than \b, because
+    // `_` is a word character and \b would reject `FOO_ABC-1` along with it.
     //
     // Nothing constrains the trailing side: a reference keeps its meaning
-    // whatever follows, so `ASE-123abc`, `ASE-123_4` and `ASE-123_some-slug`
-    // all resolve to ASE-123. The digit run stays greedy, so `ASE-1234` is
-    // ASE-1234 and never a truncated ASE-123 with a stray `4`.
+    // whatever follows, so `ABC-123abc`, `ABC-123_4` and `ABC-123_some-slug`
+    // all resolve to ABC-123. The digit run stays greedy, so `ABC-1234` is
+    // ABC-1234 and never a truncated ABC-123 with a stray `4`.
     this.pattern = new RegExp(
       `(?<![A-Za-z0-9])(${alternation})[-_](\\d{1,10})`,
       'gi',

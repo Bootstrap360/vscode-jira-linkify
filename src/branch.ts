@@ -6,7 +6,7 @@ import { JiraMatcher } from './matcher';
 
 /** A ticket referenced by the current branch name. */
 export interface BranchTicket {
-  /** Normalised key, e.g. `AIR-1100`. */
+  /** Normalised key, e.g. `XY-1100`. */
   key: string;
   /** Absolute URL the key points at. */
   url: string;
@@ -24,7 +24,7 @@ export function shouldCollapse(count: number): boolean {
 
 /**
  * Every distinct reference in a branch name, in order of appearance, so
- * `feature/AIR-1100_and-ASE-374` yields both. A key repeated in the same branch
+ * `feature/XY-1100_and-ABC-374` yields both. A key repeated in the same branch
  * yields one entry: two identical status-bar links would be noise.
  */
 export function ticketsInBranch(
