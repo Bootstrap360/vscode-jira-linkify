@@ -20,14 +20,19 @@ Jira session applies.
 
 ## Configuration
 
+Run **Jira Linkify: Setup** from the command palette to be walked through both
+settings, or set them by hand as below. The setup command accepts a bare host
+and fills in the rest.
+
 Both settings must be set; with either left empty the extension contributes no
 links at all. That is deliberate — an unrestricted match would linkify `UTF_8`
 and `SHA-1`.
 
 | Setting | Type | Description |
 | --- | --- | --- |
-| `jiraLinks.baseUrl` | string | Base URL a ticket key is appended to, e.g. `https://yourorg.atlassian.net/browse/` |
+| `jiraLinks.baseUrl` | string | Jira site or base URL a key is appended to. A bare host such as `yourorg.atlassian.net` is accepted and becomes `https://yourorg.atlassian.net/browse` |
 | `jiraLinks.projectKeys` | string[] | The project keys to linkify, e.g. `["ABC", "XY"]` |
+| `jiraLinks.branchStatusBar` | boolean | Show status-bar links for the current branch's tickets. Default `true` |
 
 Both are `resource`-scoped, so per-repository `.vscode/settings.json` wins over
 your user settings — useful when you work across Jira instances.
@@ -99,9 +104,28 @@ Both print a JSON array ready to paste into `jiraLinks.projectKeys`.
   `ABC-123` with a stray `4`.
 - The whitelist is what prevents false positives, not the surrounding text:
   `UTF_8` and `SHA-1` linkify only if you configure `UTF` or `SHA` as keys.
+- A reference **inside a URL** is left alone, because VS Code already links the
+  whole URL. Two overlapping links over the same characters would leave it
+  unclickable. A reference elsewhere on the same line still links, and a
+  markdown label like `[ABC-1](https://…/ABC-1)` links while its target does not.
 - The longest configured key wins, so `ABCDEF-1` links as `ABCDEF-1` even when
   both `ABC` and `ABCDEF` are configured.
 - Leading zeros are preserved: `ABC-0384` links to `ABC-0384`.
+
+## Branch links
+
+The ticket for the branch you are on appears in the status bar, and clicking it
+opens the ticket. The key may sit anywhere in the branch name, so
+`feature/ABC-123_some-slug` works as well as `ABC-123-some-slug`.
+
+A branch naming more than one ticket gets one item per key, in the order they
+appear. Past four they collapse into a single entry that opens a pick list.
+Nothing is shown on a detached HEAD, on a branch with no reference, or while the
+extension is unconfigured.
+
+**Jira Linkify: Open ticket for current branch** does the same from the command
+palette, and offers a pick list when the branch names several. Set
+`jiraLinks.branchStatusBar` to `false` to keep editor and terminal links only.
 
 ## Limitations
 

@@ -4,7 +4,7 @@ All notable changes to this extension are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-08-19
+## [0.2.0] - 2026-08-20
 
 ### Added
 
@@ -24,3 +24,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   change without a reload.
 - A required project-key whitelist, so non-ticket tokens such as `UTF_8` and
   `SHA-1` are never linkified.
+- A `Jira Linkify: Setup` command that walks through both settings, accepts a
+  bare Jira host, and offers to save to the workspace or your user settings.
+- `jiraLinks.baseUrl` accepts a bare host: `yourorg.atlassian.net` resolves to
+  `https://yourorg.atlassian.net/browse`. A base URL with a path of its own is
+  left as given.
+- Status-bar links for the tickets named by the current git branch, one per key
+  in branch order, collapsing into a pick list past four. A
+  `Jira Linkify: Open ticket for current branch` command does the same from the
+  palette, and `jiraLinks.branchStatusBar` turns the items off.
+
+### Fixed
+
+- A reference inside a URL is no longer linkified. VS Code links whole URLs
+  itself, so the overlapping link left pasted browse URLs unclickable and
+  flickering.
