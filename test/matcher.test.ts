@@ -91,13 +91,33 @@ describe('boundaries', () => {
     assert.deepEqual(keysIn('FOO_ASE-123'), []);
   });
 
-  it('rejects trailing word characters after the number', () => {
+  it('rejects trailing letters or digits glued to the number', () => {
     assert.deepEqual(keysIn('ASE-123abc'), []);
+  });
+
+  it('rejects an underscore followed by a digit, which is an identifier', () => {
     assert.deepEqual(keysIn('ASE-123_4'), []);
+    assert.deepEqual(keysIn('ASE-123_4abc'), []);
+  });
+
+  it('matches a trailing slug after either separator', () => {
+    assert.deepEqual(keysIn('AIR-1100-sdfsakljd'), ['AIR-1100']);
+    assert.deepEqual(keysIn('AIR-1100_sdfsakljd'), ['AIR-1100']);
   });
 
   it('matches inside a branch name with a trailing slug', () => {
     assert.deepEqual(keysIn('bugfix/ASE-374-cpd-spread'), ['ASE-374']);
+    assert.deepEqual(keysIn('feature/AIR-1100_sdfsakljd'), ['AIR-1100']);
+    assert.deepEqual(keysIn('release/v2.0.0-ASE-374_wip'), ['ASE-374']);
+  });
+
+  it('finds every key in a branch name, in order', () => {
+    assert.deepEqual(keysIn('feature/AIR-1100_and-ASE-374_more'), ['AIR-1100', 'ASE-374']);
+  });
+
+  it('does not truncate the number when a slug follows', () => {
+    assert.deepEqual(keysIn('AIR-1100_x'), ['AIR-1100']);
+    assert.deepEqual(keysIn('AIR-1100-x'), ['AIR-1100']);
   });
 
   it('matches at the very start and end of the text', () => {

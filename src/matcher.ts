@@ -67,9 +67,21 @@ export class JiraMatcher {
     private readonly maxMatches: number,
   ) {
     const alternation = keys.map(escapeRegExp).join('|');
-    // \b on both sides keeps `MYABC-1` and `ABC-12x` out; `_` is a word
-    // character, so `FOO_ASE-1` is rejected too.
-    this.pattern = new RegExp(`\\b(${alternation})[-_](\\d{1,10})\\b`, 'gi');
+    // Leading \b keeps `MYABC-1` out, and because `_` is a word character it
+    // rejects `FOO_ASE-1` too.
+    //
+    // The trailing side cannot be \b: `_` is a word character, so `\b` would
+    // reject `ASE-123_some-slug` -- a branch name we very much want to match.
+    // Instead:
+    //   (?![0-9A-Za-z])  no letter or digit may abut the number, so `ASE-123abc`
+    //                    and a truncated `ASE-12` out of `ASE-123` stay out.
+    //   (?!_\d)          `_` followed by a digit is an identifier, not a slug,
+    //                    so `ASE-123_4` stays out. A non-digit slug is fine,
+    //                    which is what makes `ASE-123_some-slug` match.
+    this.pattern = new RegExp(
+      `\\b(${alternation})[-_](\\d{1,10})(?![0-9A-Za-z])(?!_\\d)`,
+      'gi',
+    );
   }
 
   /** Canonical `UPPER-N` form of a raw match. */

@@ -88,9 +88,15 @@ Both print a JSON array ready to paste into `jiraLinks.projectKeys`.
 ## What is and isn't matched
 
 - Separator: `-` or `_`; the number is 1–10 digits.
-- Word boundaries are enforced: `MYABC-123`, `FOO_ABC-123`, `ABC-123abc` and
-  `ABC-123_4` do **not** match.
-- A trailing slug does: `bugfix/ABC-374-some-slug` links `ABC-374`.
+- A trailing slug matches after either separator, wherever the reference sits in
+  the string, so `ABC-123-some-slug`, `ABC-123_some_slug` and
+  `feature/ABC-123_sdfsd` all link `ABC-123`. Every reference in the string is
+  matched, not just the first.
+- `MYABC-123`, `FOO_ABC-123` and `ABC-123abc` do **not** match: no letter or
+  digit may abut the key or the number.
+- `ABC-123_4` does **not** match either — an underscore followed by a digit reads
+  as an identifier rather than a slug. `ABC-123_4th-try` is excluded for the same
+  reason, which is the one case a slug is missed.
 - The longest configured key wins, so `ABCDEF-1` links as `ABCDEF-1` even when
   both `ABC` and `ABCDEF` are configured.
 - Leading zeros are preserved: `ABC-0384` links to `ABC-0384`.
