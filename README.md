@@ -44,6 +44,47 @@ Keys are matched case-insensitively, and configured keys are normalised
 (trimmed, uppercased, de-duplicated), so `["abc", "ABC "]` behaves as `["ABC"]`.
 Changes take effect immediately — no reload.
 
+### Finding your project keys
+
+Jira has no anonymous project list, but you can fetch your own with an
+[API token](https://id.atlassian.com/manage-profile/security/api-tokens). The
+token stays in your shell — the extension never sees it and stores no
+credentials.
+
+```bash
+export JIRA_SITE=yourorg.atlassian.net
+export JIRA_EMAIL=you@example.com
+export JIRA_API_TOKEN=...
+```
+
+The projects you have used recently, which is usually what you want:
+
+```bash
+curl -fsSL -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+  "https://$JIRA_SITE/rest/api/3/project/recent?maxResults=20" \
+  | jq '[.[].key] | sort'
+```
+
+Every project you can see. `project/search` is paginated and caps at 50 per
+page, so a single unpaginated call silently truncates:
+
+```bash
+start=0; while :; do
+  page=$(curl -fsSL -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+    "https://$JIRA_SITE/rest/api/3/project/search?startAt=$start&maxResults=50")
+  jq -r '.values[].key' <<<"$page"
+  [ "$(jq -r .isLast <<<"$page")" = true ] && break
+  start=$((start + 50))
+done | sort -u | jq -R . | jq -s .
+```
+
+Both print a JSON array ready to paste into `jiraLinks.projectKeys`.
+
+> **Paste only the keys you actually use.** A large Jira site can expose
+> hundreds of projects, many with two-letter keys, and adding them all makes
+> the extension linkify unrelated strings such as `AR-15`. Keeping the list
+> narrow is the whole point of the whitelist.
+
 ## What is and isn't matched
 
 - Separator: `-` or `_`; the number is 1–10 digits.
