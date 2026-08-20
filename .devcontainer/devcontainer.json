@@ -1,65 +1,21 @@
-{ // https://code.visualstudio.com/remote/advancedcontainers/environment-variables
+{
 	// Node/TypeScript toolchain for building and publishing the extension.
-	// Unlike smg3 there is no Dockerfile: the stock TypeScript image plus
-	// devcontainer "features" already covers npm and gh, so there is nothing
-	// repo-specific left to build.
+	// Stock image plus a devcontainer "feature" covers node, npm and gh, so
+	// there is nothing repo-specific to build and no Dockerfile.
 	"name": "jira-linkify:dev",
 	// Pinned by digest, not just tag: `20-bookworm` is a moving target, so two
 	// people running "Rebuild Container" a month apart would otherwise get
 	// different toolchains. The tag is kept alongside for readability -- docker
-	// resolves the digest and ignores it. Bump both together, deliberately;
-	// nothing here picks up upstream patches on its own.
+	// resolves the digest and ignores it. Bump both together, deliberately.
 	"image": "mcr.microsoft.com/devcontainers/typescript-node:20-bookworm@sha256:0096adfe1720ee581fb68921b15b9de1df0ba46bec62e8dd8cd7da768655a50d",
 	"features": {
-		// gh, for `gh secret set VSCE_PAT` and PR work. Pinned to an exact
-		// version; `:1` would float across the whole 1.x line. The resolved
-		// digest is recorded in devcontainer-lock.json, which is committed.
+		// gh, for release work. Pinned to an exact version; `:1` would float
+		// across the whole 1.x line. The resolved digest is recorded in
+		// devcontainer-lock.json, which is committed.
 		"ghcr.io/devcontainers/features/github-cli:1.1.1": {}
 	},
-	// The stock image ships a `node` user (UID 1000) rather than one named
-	// after the host user, so unlike smg3 we keep `node` and let VS Code remap
-	// its UID/GID to the host's at container start. Without the remap every
-	// bind-mounted file below would appear root-owned.
 	"remoteUser": "node",
-	"updateRemoteUserUID": true,
-	"remoteEnv": {
-		// Keep Claude Code's config inside the mounted ~/.claude dir so it
-		// persists across rebuilds. Inert for users without Claude.
-		"CLAUDE_CONFIG_DIR": "/home/node/.claude",
-		// The host user's home, where the ~/repos mount lands. postCreateCommand
-		// needs this because $HOME here is /home/node (remoteUser is `node`), so
-		// $HOME/repos does not exist. Deriving it from $PWD instead would break
-		// when the container is opened from a git worktree.
-		"HOST_HOME": "/home/${localEnv:USER}",
-		// The Claude CLI's native installer puts the binary in ~/.local/bin, which
-		// is NOT on the image's PATH. Exporting PATH inside postCreateCommand only
-		// affects that script's own process, so extensions -- which spawn
-		// non-interactive processes and never read .bashrc -- could not find
-		// `claude` at all. It has to be declared here to reach the extension host.
-		"PATH": "/home/node/.local/bin:${containerEnv:PATH}"
-	},
-	// Use the exact folder VS Code opened, so "Reopen in Container" works from
-	// any git worktree rather than always landing in the main checkout.
-	"workspaceFolder": "${localWorkspaceFolder}",
-	// Mount the opened folder explicitly to override the default
-	// `--mount-workspace-git-root` behaviour, which would otherwise mount the
-	// main git worktree for any worktree.
-	"workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
-	"mounts": [
-		// ~/repos is required, not a convenience: a git worktree's .git file
-		// points back into the main checkout's .git/worktrees/, so git inside
-		// the container breaks unless the main repo is visible at the same path.
-		// It also carries .gitconfig and .my_bashrc (see the two scripts).
-		"source=/home/${localEnv:USER}/repos,target=/home/${localEnv:USER}/repos,type=bind,consistency=cached",
-		// SSH keys, for pushing to github.com:Bootstrap360/vscode-jira-linkify.
-		"source=/home/${localEnv:USER}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached",
-		// Claude Code state (auth token, session history, config). Source dir is
-		// pre-created user-owned by initializeCommand.sh; empty and harmless for
-		// users without Claude.
-		"source=/home/${localEnv:USER}/.claude,target=/home/node/.claude,type=bind,consistency=cached"
-	],
-	"initializeCommand": "bash .devcontainer/initializeCommand.sh",
-	"postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+	"postCreateCommand": "npm ci && npm run compile",
 	"customizations": {
 		"vscode": {
 			"settings": {
