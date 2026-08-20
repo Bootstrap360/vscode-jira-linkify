@@ -18,6 +18,9 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # A job that hangs on a stuck network call would otherwise sit on a runner
+    # for the full 6h default. Every step here is seconds-to-a-minute.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
