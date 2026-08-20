@@ -4,6 +4,17 @@ All notable changes to this extension are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-08-20
+
+First stable release. The feature set is settled — editor links, terminal links,
+branch status-bar links and the setup command — and the settings are considered
+stable from here.
+
+### Changed
+
+- No functional change since 0.2.1. Test fixtures and code comments now use
+  generic project keys (`ABC`, `XY`) rather than one organisation's real ones.
+
 ## [0.2.1] - 2026-08-20
 
 ### Changed
