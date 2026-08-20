@@ -32,6 +32,13 @@
   ],
   "main": "./out/src/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "jiraLinks.setup",
+        "title": "Setup",
+        "category": "Jira Linkify"
+      }
+    ],
     "configuration": {
       "title": "Jira Linkify",
       "properties": {
