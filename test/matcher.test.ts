@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { JiraMatcher, createMatcher } from '../src/matcher';
+import {
+  JiraMatcher,
+  createMatcher,
+  normaliseBaseUrl,
+  parseProjectKeys,
+} from '../src/matcher';
 
 const BASE_URL = 'https://example.atlassian.net/browse/';
 const KEYS = ['AIR', 'ASE', 'AL', 'AS', 'AIRWM3B', 'AIRSMG3R', 'CS'];
@@ -181,5 +186,64 @@ describe('reuse', () => {
     const built = matcher();
     assert.deepEqual(built.findMatches('ASE-1').map((m) => m.key), ['ASE-1']);
     assert.deepEqual(built.findMatches('ASE-2').map((m) => m.key), ['ASE-2']);
+  });
+});
+
+describe('normaliseBaseUrl', () => {
+  it('adds https and /browse to a bare host', () => {
+    assert.equal(normaliseBaseUrl('yourorg.atlassian.net'), 'https://yourorg.atlassian.net/browse');
+  });
+
+  it('adds /browse to a host that already has a scheme', () => {
+    assert.equal(
+      normaliseBaseUrl('https://yourorg.atlassian.net'),
+      'https://yourorg.atlassian.net/browse',
+    );
+  });
+
+  it('leaves an already-correct base alone, with or without a trailing slash', () => {
+    assert.equal(
+      normaliseBaseUrl('https://yourorg.atlassian.net/browse'),
+      'https://yourorg.atlassian.net/browse',
+    );
+    assert.equal(
+      normaliseBaseUrl('https://yourorg.atlassian.net/browse/'),
+      'https://yourorg.atlassian.net/browse',
+    );
+  });
+
+  it('keeps an explicit scheme and port', () => {
+    assert.equal(normaliseBaseUrl('http://jira.internal:8080'), 'http://jira.internal:8080/browse');
+  });
+
+  it('does not append /browse to a path the user chose', () => {
+    assert.equal(normaliseBaseUrl('https://example.com/tickets'), 'https://example.com/tickets');
+  });
+
+  it('trims surrounding whitespace', () => {
+    assert.equal(
+      normaliseBaseUrl('  yourorg.atlassian.net  '),
+      'https://yourorg.atlassian.net/browse',
+    );
+  });
+
+  it('returns empty for input that cannot be a URL', () => {
+    assert.equal(normaliseBaseUrl(''), '');
+    assert.equal(normaliseBaseUrl('   '), '');
+    assert.equal(normaliseBaseUrl('https://'), '');
+  });
+});
+
+describe('parseProjectKeys', () => {
+  it('splits on commas and whitespace, uppercases and de-duplicates', () => {
+    assert.deepEqual(parseProjectKeys('abc, xy  PLATFORM, abc'), ['PLATFORM', 'ABC', 'XY']);
+  });
+
+  it('drops anything that is not a key', () => {
+    assert.deepEqual(parseProjectKeys('ok2 9bad -- '), ['OK2']);
+  });
+
+  it('returns empty for empty input', () => {
+    assert.deepEqual(parseProjectKeys(''), []);
   });
 });

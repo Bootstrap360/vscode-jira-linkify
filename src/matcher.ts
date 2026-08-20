@@ -26,6 +26,7 @@ export interface MatcherOptions {
 
 const DEFAULT_MAX_MATCHES = 5000;
 
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -49,9 +50,55 @@ function sanitiseKeys(projectKeys: string[]): string[] {
   return keys.sort((a, b) => b.length - a.length || a.localeCompare(b));
 }
 
-/** Strip trailing slashes so joining never produces `//`. */
-function normaliseBaseUrl(baseUrl: string): string {
-  return String(baseUrl ?? '').trim().replace(/\/+$/, '');
+/**
+ * Turn whatever the user typed into a base a key can be appended to.
+ *
+ * A bare host is the common case -- people know their Jira site, not the
+ * `/browse/` convention -- so `yourorg.atlassian.net` becomes
+ * `https://yourorg.atlassian.net/browse`. `/browse` is only added when the
+ * input carries no path of its own; a deliberate path like
+ * `https://example.com/tickets` is left alone, because appending to it would
+ * silently break a working Jira Server or proxied setup.
+ *
+ * Returns `''` for anything that cannot be parsed, which callers treat as
+ * unconfigured -- never as "match everything".
+ */
+export function normaliseBaseUrl(baseUrl: string): string {
+  const trimmed = String(baseUrl ?? '').trim();
+  if (!trimmed) {
+    return '';
+  }
+  // Default the scheme rather than rejecting a bare host, but keep an explicit
+  // one so an internal `http://` Jira still works.
+  const withScheme = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  let url: URL;
+  try {
+    url = new URL(withScheme);
+  } catch {
+    return '';
+  }
+  if (!url.hostname) {
+    return '';
+  }
+
+  const path = url.pathname.replace(/\/+$/, '');
+  url.pathname = path === '' ? '/browse' : path;
+  // Drop anything after the path: a query or fragment cannot survive having
+  // `/KEY` appended to it.
+  url.search = '';
+  url.hash = '';
+  return url.toString().replace(/\/+$/, '');
+}
+
+/**
+ * Parse a free-text key list (`"abc, xy PLATFORM"`) into canonical keys.
+ * Shared by the setup command so it and the settings agree on what is valid.
+ */
+export function parseProjectKeys(input: string): string[] {
+  return sanitiseKeys(String(input ?? '').split(/[\s,]+/));
 }
 
 /**
