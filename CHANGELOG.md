@@ -14,10 +14,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   browser.
 - Case- and separator-insensitive matching: `ABC-123`, `abc-123`, `abc_123` and
   `AbC_123` all normalise to `ABC-123`.
-- Trailing slugs after either separator, so branch-shaped strings linkify:
-  `ABC-123-some-slug` and `ABC-123_some_slug` both link `ABC-123`. An underscore
-  followed by a digit (`ABC-123_4`) is still treated as an identifier and left
-  alone.
+- References are found wherever they appear, so branch-shaped strings linkify:
+  anything may follow the number and anything but a letter or digit may precede
+  the key, making `ABC-123_some_slug`, `ABC-123abc` and `FOO_ABC-123` all link
+  `ABC-123`. Only a key glued to preceding letters or digits (`MYABC-123`) is
+  rejected.
 - Settings `jiraLinks.baseUrl` and `jiraLinks.projectKeys`, both `resource`
   scoped so a repository's `.vscode/settings.json` wins, and both re-read on
   change without a reload.

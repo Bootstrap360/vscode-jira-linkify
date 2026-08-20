@@ -67,19 +67,18 @@ export class JiraMatcher {
     private readonly maxMatches: number,
   ) {
     const alternation = keys.map(escapeRegExp).join('|');
-    // Leading \b keeps `MYABC-1` out, and because `_` is a word character it
-    // rejects `FOO_ASE-1` too.
+    // A letter or digit immediately before the key means the key is just part
+    // of a longer word, so `MYASE-1` is not a reference. Anything else --
+    // underscore, slash, punctuation, start of text -- is a separator, so
+    // `FOO_ASE-1` is one. That is a negative lookbehind rather than \b, because
+    // `_` is a word character and \b would reject `FOO_ASE-1` along with it.
     //
-    // The trailing side cannot be \b: `_` is a word character, so `\b` would
-    // reject `ASE-123_some-slug` -- a branch name we very much want to match.
-    // Instead:
-    //   (?![0-9A-Za-z])  no letter or digit may abut the number, so `ASE-123abc`
-    //                    and a truncated `ASE-12` out of `ASE-123` stay out.
-    //   (?!_\d)          `_` followed by a digit is an identifier, not a slug,
-    //                    so `ASE-123_4` stays out. A non-digit slug is fine,
-    //                    which is what makes `ASE-123_some-slug` match.
+    // Nothing constrains the trailing side: a reference keeps its meaning
+    // whatever follows, so `ASE-123abc`, `ASE-123_4` and `ASE-123_some-slug`
+    // all resolve to ASE-123. The digit run stays greedy, so `ASE-1234` is
+    // ASE-1234 and never a truncated ASE-123 with a stray `4`.
     this.pattern = new RegExp(
-      `\\b(${alternation})[-_](\\d{1,10})(?![0-9A-Za-z])(?!_\\d)`,
+      `(?<![A-Za-z0-9])(${alternation})[-_](\\d{1,10})`,
       'gi',
     );
   }

@@ -88,15 +88,17 @@ Both print a JSON array ready to paste into `jiraLinks.projectKeys`.
 ## What is and isn't matched
 
 - Separator: `-` or `_`; the number is 1–10 digits.
-- A trailing slug matches after either separator, wherever the reference sits in
-  the string, so `ABC-123-some-slug`, `ABC-123_some_slug` and
-  `feature/ABC-123_sdfsd` all link `ABC-123`. Every reference in the string is
-  matched, not just the first.
-- `MYABC-123`, `FOO_ABC-123` and `ABC-123abc` do **not** match: no letter or
-  digit may abut the key or the number.
-- `ABC-123_4` does **not** match either — an underscore followed by a digit reads
-  as an identifier rather than a slug. `ABC-123_4th-try` is excluded for the same
-  reason, which is the one case a slug is missed.
+- Anything may follow the number, so `ABC-123-some-slug`, `ABC-123_some_slug`,
+  `ABC-123abc` and `feature/ABC-123_sdfsd` all link `ABC-123`. Every reference in
+  the string is matched, not just the first.
+- Anything except a letter or digit may precede the key, so `FOO_ABC-123` and
+  `bugfix/ABC-123` both match.
+- `MYABC-123` and `9ABC-123` do **not** match: a letter or digit immediately
+  before the key means the key is part of a longer word, not a reference.
+- The number is greedy, so `ABC-1234` links `ABC-1234`, never a truncated
+  `ABC-123` with a stray `4`.
+- The whitelist is what prevents false positives, not the surrounding text:
+  `UTF_8` and `SHA-1` linkify only if you configure `UTF` or `SHA` as keys.
 - The longest configured key wins, so `ABCDEF-1` links as `ABCDEF-1` even when
   both `ABC` and `ABCDEF` are configured.
 - Leading zeros are preserved: `ABC-0384` links to `ABC-0384`.

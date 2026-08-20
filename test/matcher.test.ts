@@ -87,17 +87,23 @@ describe('boundaries', () => {
     assert.deepEqual(keysIn('MYASE-123'), []);
   });
 
-  it('rejects a key glued to a preceding underscore', () => {
-    assert.deepEqual(keysIn('FOO_ASE-123'), []);
+  it('matches a key preceded by an underscore, which is a separator', () => {
+    assert.deepEqual(keysIn('FOO_ASE-123'), ['ASE-123']);
   });
 
-  it('rejects trailing letters or digits glued to the number', () => {
-    assert.deepEqual(keysIn('ASE-123abc'), []);
+  it('matches trailing letters or digits glued to the number', () => {
+    assert.deepEqual(keysIn('ASE-123abc'), ['ASE-123']);
+    assert.deepEqual(keysIn('ASE-123_4'), ['ASE-123']);
+    assert.deepEqual(keysIn('ASE-123_4abc'), ['ASE-123']);
   });
 
-  it('rejects an underscore followed by a digit, which is an identifier', () => {
-    assert.deepEqual(keysIn('ASE-123_4'), []);
-    assert.deepEqual(keysIn('ASE-123_4abc'), []);
+  it('keeps the digit run greedy, so a longer number is not truncated', () => {
+    assert.deepEqual(keysIn('ASE-1234'), ['ASE-1234']);
+  });
+
+  it('still rejects a key glued to preceding letters or digits', () => {
+    assert.deepEqual(keysIn('MYASE-123'), []);
+    assert.deepEqual(keysIn('9ASE-123'), []);
   });
 
   it('matches a trailing slug after either separator', () => {
@@ -115,7 +121,7 @@ describe('boundaries', () => {
     assert.deepEqual(keysIn('feature/AIR-1100_and-ASE-374_more'), ['AIR-1100', 'ASE-374']);
   });
 
-  it('does not truncate the number when a slug follows', () => {
+  it('matches a one-character slug after either separator', () => {
     assert.deepEqual(keysIn('AIR-1100_x'), ['AIR-1100']);
     assert.deepEqual(keysIn('AIR-1100-x'), ['AIR-1100']);
   });
