@@ -2,7 +2,7 @@
   "name": "jira-linkify",
   "displayName": "Jira Linkify",
   "description": "Turns Jira ticket references (ABC-123, abc-123, abc_123) into clickable links in the editor and the integrated terminal.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "bootstrap360",
   "license": "MIT",
   "icon": "images/icon.png",

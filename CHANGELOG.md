@@ -4,6 +4,16 @@ All notable changes to this extension are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-20
+
+### Changed
+
+- The branch status bar items now use the link icon rather than the git branch
+  icon, so they stand apart from the built-in branch indicator.
+- On a detached HEAD, a branch with no ticket reference, or an unconfigured
+  extension, the status bar shows a dimmed "No Jira Linkify" item instead of
+  nothing, so the button stays findable.
+
 ## [0.2.0] - 2026-08-20
 
 ### Added
