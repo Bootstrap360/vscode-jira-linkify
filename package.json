@@ -37,6 +37,11 @@
         "command": "jiraLinks.setup",
         "title": "Setup",
         "category": "Jira Linkify"
+      },
+      {
+        "command": "jiraLinks.openBranchTicket",
+        "title": "Open ticket for current branch",
+        "category": "Jira Linkify"
       }
     ],
     "configuration": {
@@ -57,6 +62,12 @@
           "uniqueItems": true,
           "markdownDescription": "Project keys to linkify, e.g. `[\"ABC\", \"XY\"]`. Matching is case-insensitive and accepts `-` or `_` as the separator. Leave empty to disable linking.",
           "scope": "resource"
+        },
+        "jiraLinks.branchStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show a status-bar link for each ticket referenced by the current git branch name, e.g. `feature/ABC-123_slug`. Turn off to keep in-editor and terminal links only.",
+          "scope": "window"
         }
       }
     }
