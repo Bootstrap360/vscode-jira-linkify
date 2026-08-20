@@ -26,6 +26,26 @@ export interface MatcherOptions {
 
 const DEFAULT_MAX_MATCHES = 5000;
 
+/**
+ * Spans of `scheme://host...` in the scanned text.
+ *
+ * VS Code linkifies whole URLs itself, in both the editor and the terminal. A
+ * reference inside one -- `https://org.atlassian.net/browse/ASE-382` -- would
+ * otherwise get a second, overlapping link over the same characters, which
+ * leaves the URL unclickable and visibly flickering as the editor picks between
+ * the two. The URL already goes to the ticket, so ours adds nothing.
+ */
+const URL_PATTERN = /[A-Za-z][A-Za-z0-9+.-]*:\/\/\S+/g;
+
+function urlSpans(text: string): Array<readonly [number, number]> {
+  const spans: Array<readonly [number, number]> = [];
+  URL_PATTERN.lastIndex = 0;
+  let found: RegExpExecArray | null;
+  while ((found = URL_PATTERN.exec(text)) !== null) {
+    spans.push([found.index, found.index + found[0].length] as const);
+  }
+  return spans;
+}
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -139,12 +159,20 @@ export class JiraMatcher {
     return `${this.baseUrl}/${key}`;
   }
 
-  /** Every ticket reference in `text`, in order of appearance. */
+  /**
+   * Every ticket reference in `text`, in order of appearance, excluding any
+   * that sits inside a URL (see {@link urlSpans}).
+   */
   findMatches(text: string): JiraMatch[] {
     const matches: JiraMatch[] = [];
+    const spans = urlSpans(text);
     this.pattern.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = this.pattern.exec(text)) !== null) {
+      const start = match.index;
+      if (spans.some(([from, to]) => start >= from && start < to)) {
+        continue;
+      }
       const key = JiraMatcher.normaliseKey(match[1], match[2]);
       matches.push({
         index: match.index,

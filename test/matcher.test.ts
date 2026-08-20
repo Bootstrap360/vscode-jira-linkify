@@ -139,8 +139,20 @@ describe('boundaries', () => {
     assert.deepEqual(keysIn('(ASE-1), [cs_2] and "AL-3".'), ['ASE-1', 'CS-2', 'AL-3']);
   });
 
-  it('matches a reference already inside a URL', () => {
-    assert.deepEqual(keysIn('https://example.atlassian.net/browse/ASE-9'), ['ASE-9']);
+  it('skips a reference inside a URL, which VS Code already links itself', () => {
+    assert.deepEqual(keysIn('https://example.atlassian.net/browse/ASE-9'), []);
+    assert.deepEqual(keysIn('http://jira.internal:8080/browse/AIR-1'), []);
+  });
+
+  it('still matches references outside a URL on the same line', () => {
+    assert.deepEqual(keysIn('see https://example.atlassian.net/browse/ASE-9 and ASE-10'), [
+      'ASE-10',
+    ]);
+    assert.deepEqual(keysIn('Fixed ASE-9. Ref https://x/browse/AIR-1 too.'), ['ASE-9']);
+  });
+
+  it('matches a markdown link label without touching its target', () => {
+    assert.deepEqual(keysIn('[ASE-1](https://example.atlassian.net/browse/ASE-1)'), ['ASE-1']);
   });
 });
 
